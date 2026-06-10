@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>行銷頁健檢器 — 貼上網址，30 秒看你的活動頁做得好不好</title>
+<meta name="description" content="免費線上工具：貼上你的活動頁／行銷頁網址，自動檢查分享卡、SEO、CTA、圖片速度、基本體質與追蹤，給分數與白話修法清單，附可直接複製的 AI prompt。">
+<link rel="canonical" href="https://yazelin.github.io/marketing-page-checker/">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="行銷頁健檢器">
+<meta property="og:description" content="貼上網址，30 秒看你的活動頁做得好不好。自動健檢 6 大面向，給分數與白話修法。">
+<meta property="og:url" content="https://yazelin.github.io/marketing-page-checker/">
+<meta property="og:image" content="https://yazelin.github.io/marketing-page-checker/assets/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="行銷頁健檢器">
+<meta name="twitter:description" content="貼上網址，30 秒看你的活動頁做得好不好。">
+<meta name="twitter:image" content="https://yazelin.github.io/marketing-page-checker/assets/og.jpg">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2310221d'/%3E%3Cpath d='M8 17l5 5 11-12' fill='none' stroke='%23c98f4e' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700;900&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#10221d; --pine:#1d4438; --moss:#2e5c4d; --mist:#9db8ae;
+    --cream:#f4efe4; --paper:#ece5d4; --copper:#c98f4e; --copper-d:#a8743a;
+    --good:#36d399; --ok:#f4b740; --bad:#e8a0a0;
+    --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    --serif:"Noto Serif TC","Songti TC",serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:var(--sans);
+    color:var(--cream);
+    background:
+      radial-gradient(120% 80% at 50% -20%, rgba(46,92,77,.5), transparent 60%),
+      radial-gradient(90% 60% at 85% 10%, rgba(201,143,78,.14), transparent 55%),
+      radial-gradient(80% 70% at 10% 90%, rgba(29,68,56,.5), transparent 60%),
+      var(--ink);
+    background-attachment:fixed;
+    min-height:100vh;
+    line-height:1.65;
+    overflow-x:hidden;
+  }
+  .wrap{width:100%;max-width:780px;margin:0 auto;padding:0 20px}
+
+  /* ---- hero ---- */
+  header{padding:64px 0 28px}
+  .kicker{
+    font-size:.8rem;letter-spacing:.32em;text-transform:uppercase;
+    color:var(--copper);font-weight:700;margin-bottom:14px;
+  }
+  h1{
+    font-family:var(--serif);font-weight:900;
+    font-size:clamp(2.4rem,8vw,3.6rem);line-height:1.08;letter-spacing:.01em;
+    color:var(--cream);
+  }
+  .sub{margin-top:16px;font-size:clamp(1rem,3.2vw,1.18rem);color:var(--mist);max-width:34em}
+
+  /* ---- input ---- */
+  .form{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap}
+  #url{
+    flex:1 1 280px;min-width:0;
+    font-family:var(--sans);font-size:1.05rem;color:var(--cream);
+    background:rgba(7,18,15,.6);
+    border:1.5px solid var(--mist);border-radius:14px;
+    padding:16px 18px;outline:none;
+    transition:border-color .18s, box-shadow .18s, background .18s;
+  }
+  #url::placeholder{color:rgba(157,184,174,.65)}
+  #url:focus{border-color:var(--copper);box-shadow:0 0 0 4px rgba(201,143,78,.18);background:rgba(7,18,15,.85)}
+  #go{
+    flex:0 0 auto;
+    font-family:var(--sans);font-size:1.05rem;font-weight:700;
+    color:var(--ink);background:var(--copper);
+    border:none;border-radius:14px;padding:16px 28px;cursor:pointer;
+    transition:background .18s, transform .08s;
+    box-shadow:0 6px 22px rgba(201,143,78,.28);
+  }
+  #go:hover{background:var(--copper-d)}
+  #go:active{transform:translateY(1px)}
+  .hint{margin-top:12px;font-size:.85rem;color:rgba(157,184,174,.8)}
+
+  /* ---- loading ---- */
+  #loading{display:none;text-align:center;padding:60px 0;color:var(--mist)}
+  .spinner{
+    width:44px;height:44px;margin:0 auto 18px;border-radius:50%;
+    border:3px solid rgba(157,184,174,.25);border-top-color:var(--copper);
+    animation:spin 0.9s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ---- result ---- */
+  #result{display:none;padding:8px 0 40px}
+  .err{
+    text-align:center;padding:34px 24px;color:var(--bad);
+    background:rgba(232,160,160,.08);border:1px solid rgba(232,160,160,.3);
+    border-radius:16px;font-size:1.05rem;
+  }
+  .scorebox{text-align:center;padding:18px 0 6px}
+  .ring{
+    --c:var(--copper);
+    width:172px;height:172px;border-radius:50%;margin:0 auto;
+    display:grid;place-items:center;
+    background:conic-gradient(var(--c) calc(var(--p,0) * 1%), rgba(157,184,174,.16) 0);
+    position:relative;
+  }
+  .ring::before{
+    content:"";position:absolute;inset:13px;border-radius:50%;
+    background:radial-gradient(circle at 50% 35%, #16302a, var(--ink));
+    box-shadow:inset 0 2px 14px rgba(0,0,0,.5);
+  }
+  .ring span{position:relative;font-family:var(--serif);font-weight:900;font-size:3.1rem;color:var(--cream);line-height:1}
+  .ring span small{font-size:1rem;color:var(--mist);font-family:var(--sans);font-weight:500}
+  .grade{font-family:var(--serif);font-weight:700;font-size:1.5rem;margin-top:14px}
+  .for{
+    margin:6px auto 0;font-size:.88rem;color:var(--mist);
+    word-break:break-all;max-width:90%;
+  }
+  .fetched{font-size:.78rem;color:rgba(157,184,174,.6);margin-top:2px}
+
+  h3{
+    font-family:var(--serif);font-weight:700;font-size:1.3rem;color:var(--cream);
+    margin:38px 0 16px;display:flex;align-items:center;gap:10px;
+  }
+  h3::before{content:"";width:4px;height:1.1em;background:var(--copper);border-radius:3px}
+
+  .top{list-style:none;display:flex;flex-direction:column;gap:10px;counter-reset:t}
+  .top li{
+    background:rgba(7,18,15,.5);border:1px solid rgba(157,184,174,.16);
+    border-radius:14px;padding:16px 18px 16px 52px;position:relative;
+  }
+  .top li::before{
+    counter-increment:t;content:counter(t);
+    position:absolute;left:16px;top:16px;
+    width:26px;height:26px;border-radius:50%;
+    background:var(--copper);color:var(--ink);
+    font-weight:700;font-size:.85rem;display:grid;place-items:center;
+  }
+  .top li b{color:var(--cream);font-weight:700}
+  .top li .fix{color:var(--mist);font-size:.95rem;margin-top:2px;display:block}
+
+  .cat{
+    background:rgba(7,18,15,.42);border:1px solid rgba(157,184,174,.14);
+    border-radius:16px;padding:18px;margin-bottom:14px;
+  }
+  .catbar{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;margin-bottom:10px}
+  .catbar .nm{font-size:1.08rem;color:var(--cream)}
+  .catbar .sc{font-size:.95rem;color:var(--mist);font-variant-numeric:tabular-nums}
+  .track{height:8px;border-radius:6px;background:rgba(157,184,174,.16);overflow:hidden;margin-bottom:14px}
+  .track i{display:block;height:100%;border-radius:6px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+
+  .cat ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+  .ck{
+    padding:11px 14px;border-radius:11px;font-size:.95rem;
+    background:rgba(255,255,255,.02);border-left:3px solid transparent;
+  }
+  .ck .ico{
+    display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;
+    font-size:.72rem;font-weight:700;margin-right:8px;vertical-align:-2px;
+  }
+  .ck .lab{font-weight:500;color:var(--cream)}
+  .ck .detail{display:block;color:var(--mist);font-size:.86rem;margin:5px 0 0 28px}
+  .ck.pass{border-left-color:rgba(54,211,153,.55)}
+  .ck.pass .ico{background:rgba(54,211,153,.18);color:var(--good)}
+  .ck.warn{border-left-color:rgba(244,183,64,.55)}
+  .ck.warn .ico{background:rgba(244,183,64,.18);color:var(--ok)}
+  .ck.fail{border-left-color:rgba(232,160,160,.6)}
+  .ck.fail .ico{background:rgba(232,160,160,.16);color:var(--bad)}
+
+  .copy{
+    display:inline-block;margin:9px 0 0 28px;
+    font-family:var(--sans);font-size:.8rem;font-weight:600;
+    color:var(--copper);background:rgba(201,143,78,.1);
+    border:1px solid rgba(201,143,78,.4);border-radius:9px;
+    padding:6px 12px;cursor:pointer;transition:background .15s, color .15s;
+  }
+  .copy:hover{background:rgba(201,143,78,.2)}
+  .copy.done{color:var(--good);border-color:rgba(54,211,153,.5);background:rgba(54,211,153,.12)}
+  .top .copy{margin-left:0;margin-top:10px}
+
+  /* ---- bottom cta ---- */
+  .ctacard{
+    margin:40px 0 18px;text-align:center;
+    background:linear-gradient(135deg, rgba(46,92,77,.4), rgba(29,68,56,.25));
+    border:1px solid rgba(201,143,78,.25);border-radius:20px;padding:34px 24px;
+  }
+  .ctacard p{color:var(--mist);margin-bottom:18px;font-size:1.02rem}
+  .cta{
+    display:inline-block;font-weight:700;font-size:1.05rem;
+    color:var(--ink);background:var(--copper);text-decoration:none;
+    border-radius:14px;padding:15px 28px;
+    box-shadow:0 6px 22px rgba(201,143,78,.3);transition:background .18s, transform .08s;
+  }
+  .cta:hover{background:var(--copper-d)}
+  .cta:active{transform:translateY(1px)}
+
+  footer{text-align:center;color:rgba(157,184,174,.6);font-size:.82rem;padding:18px 0 48px}
+  footer a{color:var(--mist)}
+
+  @media(max-width:430px){
+    header{padding:44px 0 22px}
+    #go{flex:1 1 100%}
+    .ring{width:150px;height:150px}
+    .ring span{font-size:2.7rem}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">Marketing Page Checker</div>
+    <h1>行銷頁健檢器</h1>
+    <p class="sub">貼上你的活動頁網址，30 秒看它做得好不好。自動檢查分享卡、SEO、CTA、速度、體質與追蹤，給分數與白話修法。</p>
+
+    <div class="form">
+      <input id="url" type="url" inputmode="url" autocomplete="off"
+             placeholder="貼上你的活動頁網址，例如 your-event.com">
+      <button id="go">免費健檢</button>
+    </div>
+    <p class="hint">不會儲存你的網址，分析後即丟。支援 http / https 公開頁面。</p>
+  </header>
+
+  <div id="loading">
+    <div class="spinner"></div>
+    <p>正在抓取並分析你的頁面…</p>
+  </div>
+
+  <div id="result"></div>
+
+  <footer>
+    一個會吃自己狗糧的小工具 ·
+    <a href="https://yazelin.github.io/ai-marketing-pages-course/">AI 行銷頁實作課</a>
+  </footer>
+
+</div>
+
+<script>
+  const WORKER_URL = "https://marketing-page-checker.yazelinj303.workers.dev";
+  const $ = id => document.getElementById(id);
+  const GRADE_COLOR = { "優秀":"#36d399", "及格":"#f4b740", "待加強":"#e8a0a0" };
+  const esc = s => String(s ?? "").replace(/[<>&"]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;","\"":"&quot;"}[c]));
+  const STATUS_ICON = { pass:"✓", warn:"!", fail:"✕" };
+
+  async function run() {
+    let url = $("url").value.trim();
+    if (!url) { $("url").focus(); return; }
+    if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+    $("result").style.display = "none";
+    $("result").innerHTML = "";
+    $("loading").style.display = "block";
+    $("go").disabled = true;
+    try {
+      const r = await fetch(WORKER_URL + "/?url=" + encodeURIComponent(url));
+      const data = await r.json();
+      $("loading").style.display = "none";
+      if (data.error) {
+        $("result").style.display = "block";
+        $("result").innerHTML = `<p class="err">${esc(data.error)}</p>`;
+        return;
+      }
+      render(data);
+    } catch {
+      $("loading").style.display = "none";
+      $("result").style.display = "block";
+      $("result").innerHTML = `<p class="err">連不上伺服器，請稍後再試。</p>`;
+    } finally {
+      $("go").disabled = false;
+    }
+  }
+
+  function render(d) {
+    const color = GRADE_COLOR[d.grade] || "#c98f4e";
+
+    const topFixes = (d.topFixes || []).map(f => `
+      <li>
+        <b>${esc(f.label)}</b>
+        <span class="fix">${esc(f.fix)}</span>
+        <button class="copy" data-p="${esc(f.prompt)}">複製 AI prompt</button>
+      </li>`).join("");
+
+    const cats = (d.categories || []).map(c => {
+      const pct = c.max ? Math.round(c.score / c.max * 100) : 0;
+      const checks = (c.checks || []).map(ck => `
+        <li class="ck ${esc(ck.status)}">
+          <span class="ico">${STATUS_ICON[ck.status] || "?"}</span><span class="lab">${esc(ck.label)}</span>
+          <span class="detail">${esc(ck.detail)}</span>
+          ${ck.status !== "pass" ? `<button class="copy" data-p="${esc(ck.prompt)}">複製修法 prompt</button>` : ""}
+        </li>`).join("");
+      return `
+        <div class="cat">
+          <div class="catbar"><span class="nm">${esc(c.name)}</span><span class="sc">${c.score} / ${c.max}</span></div>
+          <div class="track"><i style="width:${pct}%;background:${color}"></i></div>
+          <ul>${checks}</ul>
+        </div>`;
+    }).join("");
+
+    $("result").style.display = "block";
+    $("result").innerHTML = `
+      <div class="scorebox">
+        <div class="ring" style="--c:${color};--p:${Math.max(0, Math.min(100, d.score || 0))}">
+          <span>${d.score ?? "—"}<small>/ 100</small></span>
+        </div>
+        <p class="grade" style="color:${color}">${esc(d.grade)}</p>
+        <p class="for">${esc(d.url)}</p>
+        ${d.fetchedAt ? `<p class="fetched">檢查時間 ${esc(d.fetchedAt)}</p>` : ""}
+      </div>
+      ${topFixes ? `<h3>先修這幾個</h3><ol class="top">${topFixes}</ol>` : ""}
+      <h3>逐項結果</h3>
+      ${cats}
+      <div class="ctacard">
+        <p>想學會自己做出高分行銷頁？</p>
+        <a class="cta" href="https://yazelin.github.io/ai-marketing-pages-course/">來上課，把這份清單變成你的本能 →</a>
+      </div>`;
+
+    document.querySelectorAll(".copy").forEach(b => b.onclick = () => {
+      const text = b.dataset.p || "";
+      const done = () => { b.textContent = "已複製 ✓"; b.classList.add("done"); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => {
+          fallbackCopy(text); done();
+        });
+      } else { fallbackCopy(text); done(); }
+    });
+
+    $("result").scrollIntoView({ behavior:"smooth", block:"start" });
+  }
+
+  function fallbackCopy(text) {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); } catch {}
+    document.body.removeChild(ta);
+  }
+
+  $("go").onclick = run;
+  $("url").addEventListener("keydown", e => { if (e.key === "Enter") run(); });
+
+  const pre = new URLSearchParams(location.search).get("url");
+  if (pre) { $("url").value = pre; run(); }
+</script>
+</body>
+</html>
