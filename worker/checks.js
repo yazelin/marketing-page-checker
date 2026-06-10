@@ -103,3 +103,33 @@ export function checkPerf(p) {
       "幫我減少活動頁的圖片與 script 數量、把非首屏的圖改成延遲載入"),
   ];
 }
+
+export function checkBasics(p) {
+  const links = p.links || [];
+  const placeholders = links.filter(l => {
+    const h = (l.href || "").trim();
+    return h === "#" || h === "" || /example\.com/i.test(h);
+  });
+  return [
+    mk("https", "HTTPS 加密", p.https ? "pass" : "fail",
+      p.https ? "用 https" : "沒有 https,瀏覽器會標不安全、影響信任與 SEO",
+      "用支援 https 的主機(GitHub Pages / Vercel / Cloudflare 都自動有)",
+      "我的活動頁沒有 https,幫我說明怎麼讓它有(用 GitHub Pages 或自訂網域)"),
+    mk("viewport", "手機 viewport", p.hasViewport ? "pass" : "fail",
+      p.hasViewport ? "有 viewport meta" : "沒有 viewport meta,手機上會縮成一團",
+      "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">",
+      "幫我加 viewport meta 讓頁面在手機正常顯示"),
+    mk("favicon", "網站圖示 favicon", p.hasFavicon ? "pass" : "warn",
+      p.hasFavicon ? "有 favicon" : "沒有 favicon,分頁/書籤是空白圖示",
+      "加 <link rel=\"icon\" href=\"...\"> 或放一個 /favicon.ico",
+      "幫我加一個 favicon(用品牌色做一個簡單的)"),
+    mk("placeholder-links", "沒有假連結", placeholders.length === 0 ? "pass" : "fail",
+      placeholders.length === 0 ? "沒有 # 或 example.com 佔位連結" : `有 ${placeholders.length} 個佔位連結沒換成真網址(# 或 example.com)`,
+      "把所有 href=\"#\" 和 example.com 換成真實連結",
+      "幫我找出頁面裡 href 還是 # 或 example.com 的連結,提醒我換成真網址"),
+    mk("charset", "編碼宣告 charset", p.charset ? "pass" : "warn",
+      p.charset ? `有:${p.charset}` : "沒有 charset 宣告,中文可能變亂碼",
+      "<meta charset=\"utf-8\"> 放在 <head> 最前面",
+      "幫我在 head 最前面加 <meta charset=\"utf-8\">"),
+  ];
+}
