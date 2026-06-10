@@ -81,3 +81,25 @@ export function checkCTA(p) {
       "幫我頁面加一個收 email 的報名表單,或放上 LINE 加好友連結"),
   ];
 }
+
+const KB = 1024;
+export function checkPerf(p) {
+  const imgs = p.images || [];
+  const big = imgs.filter(i => (i.bytes || 0) > 500 * KB);
+  const assetCount = imgs.length + (p.scriptCount || 0);
+  const fmtKB = (b) => Math.round(b / KB) + "KB";
+  return [
+    mk("img-oversized", "圖片沒有過大", big.length === 0 ? "pass" : "fail",
+      big.length === 0 ? "沒有超過 500KB 的圖" : `有 ${big.length} 張圖過大:` + big.slice(0,5).map(i => `${i.src.split("/").pop()}(${fmtKB(i.bytes)})`).join("、"),
+      "把每張圖壓到 500KB 以下(線上壓圖工具或匯出時調品質)",
+      "我有幾張圖太大,幫我說明怎麼把活動頁的圖壓到 500KB 以下而不明顯失真"),
+    mk("html-size", "HTML 體積", (p.htmlBytes || 0) > 150 * KB ? "warn" : "pass",
+      (p.htmlBytes || 0) > 150 * KB ? `HTML ${fmtKB(p.htmlBytes)} 偏大,行動網路載入較慢` : `HTML ${fmtKB(p.htmlBytes || 0)},合理`,
+      "移除沒用到的內嵌內容/重複樣式,或把大段資料外移",
+      "我的活動頁 HTML 太大,幫我找出可以精簡的地方"),
+    mk("asset-count", "資產數量", assetCount > 50 ? "warn" : "pass",
+      assetCount > 50 ? `圖片+script 共 ${assetCount} 個,請求過多會變慢` : `資產數 ${assetCount},合理`,
+      "合併/移除不必要的圖與 script,延後載入非首屏圖片",
+      "幫我減少活動頁的圖片與 script 數量、把非首屏的圖改成延遲載入"),
+  ];
+}
