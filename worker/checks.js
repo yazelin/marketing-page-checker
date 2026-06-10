@@ -63,3 +63,21 @@ export function checkSEO(p) {
       "幫我把 <html> 加上 lang=\"zh-Hant\""),
   ];
 }
+
+export const CTA_WORDS = ["報名","立即","馬上","購買","下單","加入","領取","領券","預約","諮詢","聯絡","報名表","搶購","免費試","訂閱","加 line","加入好友"];
+
+export function checkCTA(p) {
+  const texts = [...(p.buttons||[]), ...(p.links||[]).map(l => l.text || "")];
+  const hasCta = texts.some(t => CTA_WORDS.some(w => (t||"").toLowerCase().includes(w)));
+  const hasContact = p.forms > 0 || p.hasMailto || p.hasTel || p.hasLine;
+  return [
+    mk("cta-present", "明確行動呼籲 CTA", hasCta ? "pass" : "fail",
+      hasCta ? "偵測到明確的行動按鈕/連結" : "沒看到明確 CTA,訪客不知道下一步該做什麼",
+      "在 hero 放一顆明確按鈕,例如「立即報名」「加入 LINE 領券」",
+      "幫我在頁面 hero 加一顆明確的 CTA 按鈕,文字是『立即報名』,連到報名連結"),
+    mk("contact-method", "聯絡/轉換管道", hasContact ? "pass" : "fail",
+      hasContact ? "有表單或聯絡方式" : "沒有表單、email、電話或 LINE,訪客無法行動",
+      "加一個報名表單,或放 LINE/email/電話讓人能聯絡",
+      "幫我頁面加一個收 email 的報名表單,或放上 LINE 加好友連結"),
+  ];
+}
