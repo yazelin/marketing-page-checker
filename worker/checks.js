@@ -33,3 +33,33 @@ export function checkOG(p) {
       "幫我加 twitter:card 設為 summary_large_image"),
   ];
 }
+
+export function checkSEO(p) {
+  const titleLen = (p.title || "").length;
+  return [
+    mk("title", "網頁標題 title", !p.title ? "fail" : titleLen > 30 ? "warn" : "pass",
+      !p.title ? "沒有 <title>" : titleLen > 30 ? `標題 ${titleLen} 字偏長,搜尋結果會被截斷` : `有:「${p.title}」`,
+      "每頁設一個含關鍵字+品牌的 <title>,約 30 字內",
+      "幫我頁面寫一個含活動關鍵字與品牌、30 字內的 title"),
+    mk("meta-desc", "搜尋摘要 description", p.metaDescription ? "pass" : "fail",
+      p.metaDescription ? `有:「${p.metaDescription}」` : "沒有 meta description,搜尋結果摘要會亂抓",
+      "加 <meta name=\"description\" content=\"一兩句讓人想點的摘要\">",
+      "幫我加 meta description,寫一兩句吸引點擊的活動摘要"),
+    mk("h1", "主標題 h1", p.h1Count === 1 ? "pass" : p.h1Count === 0 ? "fail" : "warn",
+      p.h1Count === 0 ? "沒有 h1,搜尋引擎抓不到頁面主題" : p.h1Count === 1 ? "有一個主標題" : `有 ${p.h1Count} 個 h1,主題不明確`,
+      "整頁放一個 <h1> 當主標題,其餘用 h2/h3",
+      "幫我把頁面主標題設成唯一的 h1,其他標題改 h2/h3"),
+    mk("canonical", "正規網址 canonical", p.canonical ? "pass" : "warn",
+      p.canonical ? "有 canonical" : "沒有 canonical(同頁多網址時會分散權重)",
+      "加 <link rel=\"canonical\" href=\"這頁的正式網址\">",
+      "幫我加 canonical 連結,指向這頁的正式網址"),
+    mk("jsonld", "結構化資料 JSON-LD", p.hasJsonLd ? "pass" : "warn",
+      p.hasJsonLd ? "有 JSON-LD" : "沒有結構化資料,AI/Google 較難精準理解活動資訊",
+      "加一段 application/ld+json,活動用 Event、商店用 LocalBusiness",
+      "幫我頁面加一段 Event 的 JSON-LD,含活動名稱、日期、地點、優惠"),
+    mk("lang", "語言標示 lang", p.lang ? "pass" : "warn",
+      p.lang ? `有:${p.lang}` : "<html> 沒設 lang",
+      "<html lang=\"zh-Hant\">",
+      "幫我把 <html> 加上 lang=\"zh-Hant\""),
+  ];
+}
