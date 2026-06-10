@@ -10,6 +10,23 @@ function limited(ip) {
   arr.push(now); rate.set(ip, arr);
   return false;
 }
+// SSRF 防護:擋掉 loopback / 內網 / link-local(cloud metadata)目標。
+// 公開的「給網址就去抓」服務最低限度該有的護欄。
+function isInternalHost(h) {
+  h = (h || "").toLowerCase().replace(/\.$/, "");
+  if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".local") || h.endsWith(".internal")) return true;
+  if (h === "::1" || h === "[::1]" || h.startsWith("fc") || h.startsWith("fd")) return true; // IPv6 loopback/ULA
+  const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (m) {
+    const [a, b] = [parseInt(m[1], 10), parseInt(m[2], 10)];
+    if (a === 127 || a === 10 || a === 0) return true;                 // loopback / private / this-host
+    if (a === 192 && b === 168) return true;                            // private
+    if (a === 172 && b >= 16 && b <= 31) return true;                   // private
+    if (a === 169 && b === 254) return true;                            // link-local (metadata)
+  }
+  return false;
+}
+
 const CORS = { "Access-Control-Allow-Origin":"*", "Access-Control-Allow-Methods":"GET, OPTIONS", "Access-Control-Allow-Headers":"Content-Type" };
 const json = (o, s=200) => new Response(JSON.stringify(o), { status:s, headers:{...CORS,"Content-Type":"application/json"} });
 
@@ -38,6 +55,7 @@ export default {
     let u;
     try { u = new URL(target); } catch { return json({ error:"這看起來不是有效網址" }, 400); }
     if (u.protocol !== "http:" && u.protocol !== "https:") return json({ error:"只支援 http/https 網址" }, 400);
+    if (isInternalHost(u.hostname)) return json({ error:"只能檢查公開網站,不接受內網/本機位址" }, 400);
 
     let resp;
     try {
