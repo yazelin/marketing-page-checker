@@ -149,3 +149,34 @@ export function checkTracking(p) {
       "我要投 Facebook 廣告,幫我說明怎麼在活動頁裝 Meta Pixel"),
   ];
 }
+
+const CATEGORIES = [
+  { key:"og",       name:"分享卡",       weight:20, fn:checkOG },
+  { key:"seo",      name:"被找到 SEO",   weight:20, fn:checkSEO },
+  { key:"cta",      name:"轉換 CTA",     weight:20, fn:checkCTA },
+  { key:"perf",     name:"圖片/速度",    weight:15, fn:checkPerf },
+  { key:"basics",   name:"基本體質",     weight:15, fn:checkBasics },
+  { key:"tracking", name:"追蹤",         weight:10, fn:checkTracking },
+];
+const STATUS_VAL = { pass:1, warn:0.5, fail:0 };
+
+export function runAllChecks(p) {
+  return CATEGORIES.map(c => ({ key:c.key, name:c.name, weight:c.weight, checks:c.fn(p) }));
+}
+
+export function scoreReport(categories) {
+  const scored = categories.map(c => {
+    const per = c.weight / c.checks.length;
+    const got = c.checks.reduce((s, ck) => s + per * STATUS_VAL[ck.status], 0);
+    return { key:c.key, name:c.name, max:c.weight, score:Math.round(got), checks:c.checks };
+  });
+  const score = Math.round(scored.reduce((s, c) => s + (c.score), 0));
+  const grade = score >= 80 ? "優秀" : score >= 50 ? "及格" : "待加強";
+  const rank = { fail:0, warn:1, pass:2 };
+  const topFixes = scored.flatMap(c => c.checks)
+    .filter(ck => ck.status !== "pass")
+    .sort((a,b) => rank[a.status] - rank[b.status])
+    .slice(0, 8)
+    .map(ck => ({ id:ck.id, label:ck.label, why:ck.detail, fix:ck.fix, prompt:ck.prompt }));
+  return { score, grade, categories:scored, topFixes };
+}
