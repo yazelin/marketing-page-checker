@@ -133,3 +133,19 @@ export function checkBasics(p) {
       "幫我在 head 最前面加 <meta charset=\"utf-8\">"),
   ];
 }
+
+export function checkTracking(p) {
+  const blob = [(p.scriptSrcs || []).join(" "), p.inlineScript || ""].join(" ").toLowerCase();
+  const hasAnalytics = /googletagmanager|google-analytics|gtag\(|plausible|umami|clarity\.ms|cloudflareinsights/.test(blob);
+  const hasPixel = /fbq\(|connect\.facebook\.net|tiktok.*pixel|analytics\.tiktok|gtag\('event'.*conversion|googleadservices/.test(blob);
+  return [
+    mk("analytics", "網站分析", hasAnalytics ? "pass" : "fail",
+      hasAnalytics ? "偵測到網站分析工具" : "沒裝分析,你不會知道多少人來、從哪來、有沒有轉換",
+      "裝 Google Analytics 或 Plausible(貼一段 script 即可)",
+      "幫我說明怎麼在活動頁裝 Google Analytics 或 Plausible 追流量"),
+    mk("pixel", "廣告 pixel", hasPixel ? "pass" : "warn",
+      hasPixel ? "偵測到廣告追蹤 pixel" : "沒有廣告 pixel(若要投 FB/IG 廣告會需要)",
+      "要投廣告的話裝 Meta Pixel,才能追轉換、做再行銷",
+      "我要投 Facebook 廣告,幫我說明怎麼在活動頁裝 Meta Pixel"),
+  ];
+}
