@@ -71,6 +71,19 @@ export default {
 
     const data = await parseHtml(resp, resp.url || u.href);
     if (data.htmlBytes > 3_000_000) return json({ error:"頁面太大,無法分析" }, 413);
+
+    // raw=1:回傳分享卡預覽需要的原始 meta(share-preview 用),不打分
+    if (reqUrl.searchParams.get("raw")) {
+      return json({
+        url: data.finalUrl,
+        meta: {
+          title: data.title, description: data.metaDescription,
+          og: data.og, twitterCard: data.twitterCard,
+          canonical: data.canonical, lang: data.lang, hasFavicon: data.hasFavicon,
+        },
+      });
+    }
+
     await fillImageSizes(data);
 
     const report = scoreReport(runAllChecks(data));
